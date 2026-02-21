@@ -39,7 +39,7 @@
         {{ item.title || 'Untitled' }}
       </div>
 
-      <!-- Actions -->
+      <!-- Actions: hover-only (mobile actions are in the editor toolbar) -->
       <div
         class="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
       >
