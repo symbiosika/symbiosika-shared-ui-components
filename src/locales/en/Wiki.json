@@ -39,6 +39,8 @@
   "linkCopiedDetail": "Wiki link copied to clipboard",
   "linkCopyError": "Error copying link",
   "linkCopyErrorDetail": "Failed to copy link to clipboard",
+  "autoSave": "Auto-Save",
+  "autoSaveHint": "Automatically save when switching wiki pages and when leaving the wiki view",
   "smartEdit": "Smart Edit",
   "smartEditTitle": "Smart Editing",
   "smartEditDescription": "Describe your changes or record them using voice input. The AI will analyze and suggest precise edits.",

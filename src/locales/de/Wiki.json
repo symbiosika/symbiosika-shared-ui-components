@@ -1,5 +1,5 @@
 {
-  "title": "Wiki",
+  "title": "Wissensbasis",
   "personal": "Persönlich",
   "company": "Unternehmen",
   "addPersonalEntry": "Persönlichen Eintrag hinzufügen",
@@ -39,6 +39,8 @@
   "linkCopiedDetail": "Wiki-Link in die Zwischenablage kopiert",
   "linkCopyError": "Fehler beim Kopieren des Links",
   "linkCopyErrorDetail": "Fehler beim Kopieren des Links in die Zwischenablage",
+  "autoSave": "Auto-Speichern",
+  "autoSaveHint": "Automatisch beim Wechsel der Wiki-Seite und beim Verlassen der Wiki-Ansicht speichern",
   "smartEdit": "Smart Edit",
   "smartEditTitle": "Intelligentes Bearbeiten",
   "smartEditDescription": "Beschreiben Sie Ihre Änderungen oder nehmen Sie diese per Spracheingabe auf. Die KI analysiert und schlägt präzise Bearbeitungen vor.",

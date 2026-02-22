@@ -133,6 +133,16 @@
         </span>
         <!-- Mobile action buttons (compact) when entry is selected -->
         <div v-if="store.selectedText" class="flex shrink-0 items-center gap-1">
+          <!-- Auto-save checkbox (mobile) -->
+          <label class="flex cursor-pointer items-center gap-1.5 text-xs text-surface-600 dark:text-surface-300 mr-1" :title="$t('Wiki.autoSaveHint')">
+            <Checkbox
+              :model-value="autoSave"
+              binary
+              @update:model-value="toggleAutoSave"
+              :pt="{ root: { class: 'scale-90' } }"
+            />
+            <span class="select-none">{{ $t('Wiki.autoSave') }}</span>
+          </label>
           <slot
             name="toolbar-actions"
             :selected-text="store.selectedText"
@@ -215,6 +225,15 @@
           />
         </div>
         <div class="flex items-center gap-2">
+          <!-- Auto-save checkbox -->
+          <label class="flex cursor-pointer items-center gap-1.5 text-xs text-surface-600 dark:text-surface-300" :title="$t('Wiki.autoSaveHint')">
+            <Checkbox
+              :model-value="autoSave"
+              binary
+              @update:model-value="toggleAutoSave"
+            />
+            <span class="select-none">{{ $t('Wiki.autoSave') }}</span>
+          </label>
           <!-- Slot for app-specific toolbar actions (e.g. Digital Twin buttons) -->
           <slot
             name="toolbar-actions"
@@ -350,7 +369,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import { useKnowledgeTextsStore } from '@shared/stores/knowledgeTexts'
@@ -386,6 +405,48 @@ const editText = ref('')
 const showSmartEditDialog = ref(false)
 const isMobileSidebarOpen = ref(false)
 
+// Auto-save state – persisted in localStorage
+const autoSave = ref(localStorage.getItem('wiki-auto-save') === 'true')
+
+let autoSaveInterval: ReturnType<typeof setInterval> | null = null
+
+const AUTO_SAVE_INTERVAL_MS = 15 * 60 * 1000
+
+function startAutoSaveInterval() {
+  stopAutoSaveInterval()
+  autoSaveInterval = setInterval(() => {
+    if (store.selectedText && props.tenantId) {
+      handleSave()
+    }
+  }, AUTO_SAVE_INTERVAL_MS)
+}
+
+function stopAutoSaveInterval() {
+  if (autoSaveInterval !== null) {
+    clearInterval(autoSaveInterval)
+    autoSaveInterval = null
+  }
+}
+
+function toggleAutoSave(value: boolean) {
+  autoSave.value = value
+  localStorage.setItem('wiki-auto-save', String(value))
+  if (value) {
+    startAutoSaveInterval()
+  } else {
+    stopAutoSaveInterval()
+  }
+}
+
+// Start interval if auto-save was already enabled
+if (autoSave.value) {
+  startAutoSaveInterval()
+}
+
+onUnmounted(() => {
+  stopAutoSaveInterval()
+})
+
 // Watch for tenant change
 watch(
   () => props.tenantId,
@@ -397,10 +458,16 @@ watch(
   { immediate: true },
 )
 
-// Watch for selected text changes
+// Watch for selected text changes – auto-save previous entry on page switch
 watch(
   () => store.selectedText,
-  (newText) => {
+  async (newText, oldText) => {
+    if (autoSave.value && oldText && props.tenantId) {
+      await store.updateText(props.tenantId, oldText.id, {
+        title: editTitle.value,
+        text: editText.value,
+      })
+    }
     if (newText) {
       editTitle.value = newText.title
       if (newText.text !== undefined) {
@@ -576,11 +643,22 @@ const handleChangesApplied = async () => {
   await store.selectText(store.selectedText.id, props.tenantId)
 }
 
+// Save before leaving the wiki view (e.g. route change) when auto-save is enabled
+async function saveBeforeLeave() {
+  if (autoSave.value && store.selectedText && props.tenantId) {
+    await store.updateText(props.tenantId, store.selectedText.id, {
+      title: editTitle.value,
+      text: editText.value,
+    })
+  }
+}
+
 // Expose store and state for parent components to use
 defineExpose({
   store,
   editText,
   editTitle,
+  saveBeforeLeave,
 })
 </script>
 
